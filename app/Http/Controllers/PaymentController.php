@@ -4,28 +4,31 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Transaction;
+use Stripe\Stripe;
+use Stripe\Charge;
 
 class PaymentController extends Controller
 {
     public function showPaymentForm()
     {
-        return view('payment.form');
+        return view('payment_form');
     }
 
-    public function processPayment(Request $request)
+    public function charge(Request $request)
     {
-        $status = rand(0, 1) ? 'success' : 'failure';
+        Stripe::setApiKey(env('STRIPE_SECRET'));
 
-        $transaction = new Transaction([
-            'transaction_id' => uniqid('TXN_'),
-            'user_id' => $request->user_id,
-            'amount' => $request->amount,
-            'status' => $status,
-        ]);
+        try {
+            Charge::create([
+                'amount' => 1000, // Amount in cents
+                'currency' => 'usd',
+                'source' => $request->stripeToken,
+                'description' => 'Example Charge',
+            ]);
 
-        $transaction->save();
-
-        return redirect()->back()->with('message', 'Payment processed: ' . $status);
+            return redirect('/')->with('success', 'Payment successful!');
+        } catch (\Exception $e) {
+            return redirect('/')->with('error', $e->getMessage());
+        }
     }
 }

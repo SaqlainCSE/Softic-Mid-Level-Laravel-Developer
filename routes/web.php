@@ -19,4 +19,4 @@ Route::get('/', function () {
 });
 
 Route::get('/payment', [PaymentController::class, 'showPaymentForm']);
-Route::post('/payment/process', [PaymentController::class, 'processPayment']);
+Route::post('/payment/charge', [PaymentController::class, 'charge']);
